@@ -12,5 +12,8 @@ public class WorkoutsMappingProfile : Profile
         CreateMap<WorkoutDto, Workout>();
         CreateMap<Workout, WorkoutWithoutExercisesDto>();
         CreateMap<WorkoutWithoutExercisesDto, WorkoutDto>();
+        CreateMap<WorkoutCreateRequestDto, Workout>();
+        CreateMap<WorkoutUpdateRequestDto, Workout>();
+        CreateMap<Workout, WorkoutUpdateRequestDto>();
     }
 }

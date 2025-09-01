@@ -1,4 +1,5 @@
 using C_Sharp_Web_API.DbContexts;
+using C_Sharp_Web_API.Features.Exercises.Domain;
 using C_Sharp_Web_API.Features.Workouts.Domain;
 using Microsoft.EntityFrameworkCore;
 
@@ -26,8 +27,36 @@ public class WorkoutRepository(WorkoutContext workoutContext) : IWorkoutReposito
         return await _workoutContext.Workouts.FirstOrDefaultAsync(w => w.Id == workoutId);
     }
 
+    public async Task CreateAsync(Workout workout)
+    {
+        await _workoutContext.Workouts.AddAsync(workout);
+    }
+    
+    public void Delete(Workout workout)
+    {
+        _workoutContext.Workouts.Remove(workout);
+    }
+
+    public void AddExerciseToWorkout(Workout workout, Exercise exercise)
+    {
+        if (!workout.Exercises.Any(e => e.Id == exercise.Id))
+        {
+            workout.Exercises.Add(exercise);
+        }
+    }
+
+    public void RemoveExerciseFromWorkout(Workout workout, Exercise exercise)
+    {
+        workout.Exercises.Remove(exercise);
+    }
+
     public async Task<bool> WorkoutExistsAsync(int workoutId)
     {
         return await _workoutContext.Workouts.AnyAsync(w => w.Id == workoutId);
+    }
+
+    public async Task<int> SaveChangesAsync()
+    {
+        return await _workoutContext.SaveChangesAsync();
     }
 }

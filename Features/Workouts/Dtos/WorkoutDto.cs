@@ -1,4 +1,3 @@
-using C_Sharp_Web_API.Features.Exercises.dtos;
 using C_Sharp_Web_API.Features.Exercises.Dtos;
 
 namespace C_Sharp_Web_API.Features.Workouts.Dtos;
