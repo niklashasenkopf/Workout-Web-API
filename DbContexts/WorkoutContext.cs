@@ -1,5 +1,6 @@
 using C_Sharp_Web_API.Features.Exercises.Domain;
 using C_Sharp_Web_API.Features.SetEntries.Domain;
+using C_Sharp_Web_API.Features.Workouts.Domain;
 using Microsoft.EntityFrameworkCore;
 
 namespace C_Sharp_Web_API.DbContexts;
@@ -8,6 +9,7 @@ public class WorkoutContext : DbContext
 {
     public DbSet<Exercise> Exercises { get; set; }
     public DbSet<SetEntry> SetEntries { get; set; }
+    public DbSet<Workout> Workouts { get; set; }
 
     public WorkoutContext(DbContextOptions<WorkoutContext> options) : base(options)
     {}
@@ -15,6 +17,11 @@ public class WorkoutContext : DbContext
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);
+
+        modelBuilder.Entity<Workout>().HasData(
+            new Workout("Upper Body") { Id = 1},
+            new Workout("Lower Body") { Id = 2}
+        );
 
         modelBuilder.Entity<Exercise>().HasData(
             new Exercise("Incline Bench Press") { Id = 1, MuscleGroup = "Chest", Unit = Unit.Kg},
@@ -37,5 +44,29 @@ public class WorkoutContext : DbContext
             new SetEntry() { Id = 1, ExerciseId = 1, Date = new DateOnly(2025, 8, 9), Result = 62.5, Reps = 7 },
             new SetEntry() { Id = 2, ExerciseId = 1, Date = new DateOnly(2025, 8, 9), Result = 62.5, Reps = 5 }
         );
+
+        modelBuilder.Entity<Workout>()
+            .HasMany(w => w.Exercises)
+            .WithMany()
+            .UsingEntity<Dictionary<string, object>>(
+                "WorkoutExercise",
+                r => r.HasOne<Exercise>().WithMany().HasForeignKey("ExerciseId"),
+                l => l.HasOne<Workout>().WithMany().HasForeignKey("WorkoutId"),
+                je =>
+                {
+                    je.HasKey("WorkoutId", "ExerciseId");
+                    je.ToTable("WorkoutExercise");
+
+                    je.HasData(
+                        new { WorkoutId = 1, ExerciseId = 1},
+                        new { WorkoutId = 1, ExerciseId = 2},
+                        new { WorkoutId = 1, ExerciseId = 3},
+                        new { WorkoutId = 1, ExerciseId = 4},
+                        new { WorkoutId = 1, ExerciseId = 5},
+                        new { WorkoutId = 1, ExerciseId = 6},
+                        new { WorkoutId = 1, ExerciseId = 7}
+                    );
+                }
+            );
     }
 }

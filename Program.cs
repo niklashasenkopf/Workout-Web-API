@@ -1,5 +1,6 @@
 using C_Sharp_Web_API.DbContexts;
 using C_Sharp_Web_API.Features.Exercises.Persistence;
+using C_Sharp_Web_API.Features.Workouts.Persistence;
 using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -20,6 +21,7 @@ builder.Services.AddProblemDetails();
 builder.Services.AddDbContext<WorkoutContext>(dbContextOptions => 
     dbContextOptions.UseNpgsql(builder.Configuration["ConnectionStrings:WorkoutDb"]));
 builder.Services.AddScoped<IExerciseRepository, ExerciseRepository>();
+builder.Services.AddScoped<IWorkoutRepository, WorkoutRepository>();
 builder.Services.AddAutoMapper(cfg => {}, AppDomain.CurrentDomain.GetAssemblies());
 
 var app = builder.Build();
