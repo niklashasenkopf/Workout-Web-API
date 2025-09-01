@@ -1,11 +1,16 @@
 using System.ComponentModel.DataAnnotations;
+using C_Sharp_Web_API.Features.Exercises.Domain;
 
-namespace C_Sharp_Web_API.Exercises.Models;
+namespace C_Sharp_Web_API.Features.Exercises.Dtos;
 
 public class ExerciseCreateRequestDto
 {
     [Required(ErrorMessage = "A valid name has to be supplied.")]
+    [MaxLength(100)]
     public string Name { get; set; } = string.Empty;
+    
+    [MaxLength(100)]
     public string MuscleGroup { get; set; } = string.Empty;
-    public string Unit { get; set; } = string.Empty;
+    
+    public Unit Unit { get; set; } = Unit.Kg;
 }

@@ -1,0 +1,15 @@
+﻿services:
+  db:
+    image: postgres:16-alpine
+    restart: always
+    environment:
+      POSTGRES_USER: tml
+      POSTGRES_PASSWORD: tmlpw
+      POSTGRES_DB: trackmylife
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgressql/data
+volumes:
+  pgdata:
+
