@@ -4,6 +4,7 @@ using C_Sharp_Web_API.Features.Exercises.Persistence;
 using C_Sharp_Web_API.Features.Workouts.Domain;
 using C_Sharp_Web_API.Features.Workouts.Dtos;
 using C_Sharp_Web_API.Features.Workouts.Persistence;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.JsonPatch;
 using Microsoft.AspNetCore.Mvc;
 
@@ -11,6 +12,7 @@ namespace C_Sharp_Web_API.Features.Workouts.Controllers;
 
 
 [ApiController]
+[Authorize]
 [Route("api/workouts")]
 public class WorkoutController(
     IWorkoutRepository workoutRepository,

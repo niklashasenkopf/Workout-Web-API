@@ -6,10 +6,10 @@ using Microsoft.EntityFrameworkCore;
 
 namespace C_Sharp_Web_API.Features.Workouts.Persistence;
 
-public class WorkoutRepository(WorkoutContext workoutContext) : IWorkoutRepository
+public class WorkoutRepository(AppDatabaseContext appDatabaseContext) : IWorkoutRepository
 {
-    private readonly WorkoutContext _workoutContext =
-        workoutContext ?? throw new ArgumentNullException(nameof(workoutContext));
+    private readonly AppDatabaseContext _appDatabaseContext =
+        appDatabaseContext ?? throw new ArgumentNullException(nameof(appDatabaseContext));
 
     public async Task<(IEnumerable<Workout>, PaginationMetadata)> GetAllAsync(
         string? name, 
@@ -17,7 +17,7 @@ public class WorkoutRepository(WorkoutContext workoutContext) : IWorkoutReposito
         int pageNumber, 
         int pageSize)
     {
-        IQueryable<Workout> collection = _workoutContext.Workouts;
+        IQueryable<Workout> collection = _appDatabaseContext.Workouts;
 
         if (!string.IsNullOrWhiteSpace(name))
         {
@@ -48,22 +48,22 @@ public class WorkoutRepository(WorkoutContext workoutContext) : IWorkoutReposito
     {
         if (includeExercises)
         {
-            return await _workoutContext.Workouts
+            return await _appDatabaseContext.Workouts
                 .Include(w => w.Exercises)
                 .FirstOrDefaultAsync(w => w.Id == workoutId);
         }
 
-        return await _workoutContext.Workouts.FirstOrDefaultAsync(w => w.Id == workoutId);
+        return await _appDatabaseContext.Workouts.FirstOrDefaultAsync(w => w.Id == workoutId);
     }
 
     public async Task CreateAsync(Workout workout)
     {
-        await _workoutContext.Workouts.AddAsync(workout);
+        await _appDatabaseContext.Workouts.AddAsync(workout);
     }
     
     public void Delete(Workout workout)
     {
-        _workoutContext.Workouts.Remove(workout);
+        _appDatabaseContext.Workouts.Remove(workout);
     }
 
     public void AddExerciseToWorkout(Workout workout, Exercise exercise)
@@ -81,11 +81,11 @@ public class WorkoutRepository(WorkoutContext workoutContext) : IWorkoutReposito
 
     public async Task<bool> WorkoutExistsAsync(int workoutId)
     {
-        return await _workoutContext.Workouts.AnyAsync(w => w.Id == workoutId);
+        return await _appDatabaseContext.Workouts.AnyAsync(w => w.Id == workoutId);
     }
 
     public async Task<int> SaveChangesAsync()
     {
-        return await _workoutContext.SaveChangesAsync();
+        return await _appDatabaseContext.SaveChangesAsync();
     }
 }

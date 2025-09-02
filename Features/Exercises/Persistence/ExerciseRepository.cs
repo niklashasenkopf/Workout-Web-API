@@ -6,10 +6,10 @@ using Microsoft.EntityFrameworkCore;
 
 namespace C_Sharp_Web_API.Features.Exercises.Persistence;
 
-public class ExerciseRepository(WorkoutContext context) : IExerciseRepository
+public class ExerciseRepository(AppDatabaseContext context) : IExerciseRepository
 {
 
-    private readonly WorkoutContext _context = context ?? throw new ArgumentNullException(nameof(context));
+    private readonly AppDatabaseContext _context = context ?? throw new ArgumentNullException(nameof(context));
 
     public async Task<(IEnumerable<Exercise>, PaginationMetadata)> GetAllAsync(
         string? name, 

@@ -1,17 +1,20 @@
+using C_Sharp_Web_API.Authentication;
 using C_Sharp_Web_API.Features.Exercises.Domain;
 using C_Sharp_Web_API.Features.SetEntries.Domain;
 using C_Sharp_Web_API.Features.Workouts.Domain;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 
 namespace C_Sharp_Web_API.DbContexts;
 
-public class WorkoutContext : DbContext
+public class AppDatabaseContext : IdentityDbContext<ApiUser, IdentityRole<Guid>, Guid>
 {
     public DbSet<Exercise> Exercises { get; set; }
     public DbSet<SetEntry> SetEntries { get; set; }
     public DbSet<Workout> Workouts { get; set; }
 
-    public WorkoutContext(DbContextOptions<WorkoutContext> options) : base(options)
+    public AppDatabaseContext(DbContextOptions<AppDatabaseContext> options) : base(options)
     {}
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)

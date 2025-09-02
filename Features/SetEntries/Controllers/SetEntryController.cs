@@ -3,12 +3,14 @@ using AutoMapper;
 using C_Sharp_Web_API.Features.Exercises.Persistence;
 using C_Sharp_Web_API.Features.SetEntries.Domain;
 using C_Sharp_Web_API.Features.SetEntries.Dtos;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.JsonPatch;
 using Microsoft.AspNetCore.Mvc;
 
 namespace C_Sharp_Web_API.Features.SetEntries.Controllers;
 
 [Route("api/exercises/{exerciseId:int}/setEntries")]
+[Authorize]
 [ApiController]
 public class SetEntryController(
     IExerciseRepository exerciseRepository,

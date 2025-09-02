@@ -1,7 +1,9 @@
+using System.Text;
 using C_Sharp_Web_API.DbContexts;
 using C_Sharp_Web_API.Features.Exercises.Persistence;
 using C_Sharp_Web_API.Features.Workouts.Persistence;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.IdentityModel.Tokens;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -18,11 +20,29 @@ builder.Services.AddControllers(options =>
 
 builder.Services.AddOpenApi();
 builder.Services.AddProblemDetails();
-builder.Services.AddDbContext<WorkoutContext>(dbContextOptions => 
+builder.Services.AddDbContext<AppDatabaseContext>(dbContextOptions => 
     dbContextOptions.UseNpgsql(builder.Configuration["ConnectionStrings:WorkoutDb"]));
 builder.Services.AddScoped<IExerciseRepository, ExerciseRepository>();
 builder.Services.AddScoped<IWorkoutRepository, WorkoutRepository>();
 builder.Services.AddAutoMapper(cfg => {}, AppDomain.CurrentDomain.GetAssemblies());
+builder.Services.AddAuthentication(options =>
+{
+    options.DefaultAuthenticateScheme = "JwtBearer";
+    options.DefaultChallengeScheme = "JwtBearer";
+}).AddJwtBearer("JwtBearer", options =>
+{
+    options.TokenValidationParameters = new TokenValidationParameters
+    {
+        ValidateIssuer = true,
+        ValidateAudience = true,
+        ValidateLifetime = true,
+        ValidateIssuerSigningKey = true,
+        ValidIssuer = builder.Configuration["Authentication:Issuer"],
+        ValidAudience = builder.Configuration["Authentication:Audience"],
+        IssuerSigningKey = new SymmetricSecurityKey(
+            Encoding.UTF8.GetBytes(builder.Configuration["Authentication:SecretForKey"] ?? ""))
+    };
+});
 
 var app = builder.Build();
 
@@ -39,6 +59,10 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
+
+app.UseRouting();
+
+app.UseAuthentication();
 
 app.UseAuthorization();
 

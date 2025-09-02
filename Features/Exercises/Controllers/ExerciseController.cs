@@ -4,12 +4,14 @@ using C_Sharp_Web_API.Features.Exercises.Domain;
 using C_Sharp_Web_API.Features.Exercises.dtos;
 using C_Sharp_Web_API.Features.Exercises.Dtos;
 using C_Sharp_Web_API.Features.Exercises.Persistence;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.JsonPatch;
 using Microsoft.AspNetCore.Mvc;
 
 namespace C_Sharp_Web_API.Features.Exercises.Controllers;
 
 [ApiController]
+[Authorize]
 [Route("api/exercises")]
 public class ExerciseController(
     IExerciseRepository exerciseRepository,
