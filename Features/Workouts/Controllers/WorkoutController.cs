@@ -1,3 +1,4 @@
+using System.Text.Json;
 using AutoMapper;
 using C_Sharp_Web_API.Features.Exercises.Persistence;
 using C_Sharp_Web_API.Features.Workouts.Domain;
@@ -27,11 +28,19 @@ public class WorkoutController(
         exerciseRepository ?? throw new ArgumentNullException((nameof(exerciseRepository)));
 
     [HttpGet]
-    public async Task<ActionResult<IEnumerable<WorkoutWithoutExercisesDto>>> GetAll()
+    public async Task<ActionResult<IEnumerable<WorkoutWithoutExercisesDto>>> GetAll(
+        [FromQuery] string? name,
+        [FromQuery] string? searchQuery,
+        [FromQuery] int pageNumber = 1,
+        [FromQuery] int pageSize = 10
+        )
     {
-        var workoutEntities = await _workoutRepository.GetAllAsync();
+        var (workoutEntities, paginationMetadata) = 
+            await _workoutRepository.GetAllAsync(name, searchQuery, pageNumber, pageSize);
 
         var mappedWorkoutEntities = _mapper.Map<IEnumerable<WorkoutWithoutExercisesDto>>(workoutEntities);
+
+        Response.Headers.Append("X-Pagination", JsonSerializer.Serialize(paginationMetadata));
 
         return Ok(mappedWorkoutEntities);
     }
@@ -130,7 +139,7 @@ public class WorkoutController(
         var workout = await _workoutRepository.GetAsync(workoutId);
         if (workout is null) return NotFound("Workout not found");
 
-        var exercise = await _exerciseRepository.GetExerciseAsync(exerciseId);
+        var exercise = await _exerciseRepository.GetAsync(exerciseId);
         if (exercise is null) return NotFound("Exercise not found");
 
         _workoutRepository.AddExerciseToWorkout(workout, exercise);
@@ -146,7 +155,7 @@ public class WorkoutController(
         var workout = await _workoutRepository.GetAsync(workoutId, true);
         if (workout is null) return NoContent();
 
-        var exercise = await _exerciseRepository.GetExerciseAsync(exerciseId);
+        var exercise = await _exerciseRepository.GetAsync(exerciseId);
         if (exercise is null) return NoContent();
 
         _workoutRepository.RemoveExerciseFromWorkout(workout, exercise);
@@ -155,6 +164,4 @@ public class WorkoutController(
 
         return NoContent();
     }
-    
-    
 }

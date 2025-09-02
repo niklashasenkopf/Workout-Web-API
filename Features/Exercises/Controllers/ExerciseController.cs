@@ -1,3 +1,4 @@
+using System.Text.Json;
 using AutoMapper;
 using C_Sharp_Web_API.Features.Exercises.Domain;
 using C_Sharp_Web_API.Features.Exercises.dtos;
@@ -22,12 +23,27 @@ public class ExerciseController(
     private readonly IMapper _mapper = 
         mapper ?? throw new ArgumentNullException(nameof(mapper));
     
+    private const int MaxPageSize = 20; 
+    
     [HttpGet]
-    public async Task<ActionResult<IEnumerable<ExerciseWithoutSetEntriesDto>>> GetAll()
+    public async Task<ActionResult<IEnumerable<ExerciseWithoutSetEntriesDto>>> GetAll(
+        [FromQuery] string? name,
+        [FromQuery] string? searchQuery,
+        [FromQuery] int pageNumber = 1,
+        [FromQuery] int pageSize = 10
+        )
     {
-        var exerciseEntities = await _exerciseRepository.GetExercisesAsync();
+        if (pageSize > MaxPageSize)
+        {
+            pageSize = MaxPageSize;
+        }
+        
+        var (exerciseEntities, paginationMetadata) = 
+            await _exerciseRepository.GetAllAsync(name, searchQuery, pageNumber, pageSize);
         
         var mappedExercises = _mapper.Map<IEnumerable<ExerciseWithoutSetEntriesDto>>(exerciseEntities);
+        
+        Response.Headers.Append("X-Pagination", JsonSerializer.Serialize(paginationMetadata));
 
         return Ok(mappedExercises);
     }
@@ -35,7 +51,7 @@ public class ExerciseController(
     [HttpGet("{id:int}", Name = "GetExercise")]
     public async Task<IActionResult> Get(int id, bool includeSetEntries)
     {
-        var exercise = await _exerciseRepository.GetExerciseAsync(id, includeSetEntries);
+        var exercise = await _exerciseRepository.GetAsync(id, includeSetEntries);
 
         if (exercise is null) return NotFound($"Exercise with id: {id} wasn't found when accessing exercises");
 
@@ -54,7 +70,7 @@ public class ExerciseController(
     {
         var exercise = _mapper.Map<Exercise>(request);
         
-        await _exerciseRepository.CreateExerciseAsync(exercise);
+        await _exerciseRepository.CreateAsync(exercise);
 
         await _exerciseRepository.SaveChangesAsync();
 
@@ -70,7 +86,7 @@ public class ExerciseController(
     [HttpPut("{exerciseId:int}")]
     public async Task<ActionResult> Update(int exerciseId, ExerciseUpdateRequestDto request)
     {
-        var exercise = await _exerciseRepository.GetExerciseAsync(exerciseId);
+        var exercise = await _exerciseRepository.GetAsync(exerciseId);
 
         if (exercise is null) return NotFound("The exercise you tried to update was not found in the database");
 
@@ -86,7 +102,7 @@ public class ExerciseController(
         int exerciseId, 
         JsonPatchDocument<ExerciseUpdateRequestDto> patchDocument)
     {
-        var exercise = await _exerciseRepository.GetExerciseAsync(exerciseId);
+        var exercise = await _exerciseRepository.GetAsync(exerciseId);
 
         if (exercise is null) return NotFound("The exercise you tried to update was not found in the database");
 
@@ -109,11 +125,11 @@ public class ExerciseController(
     [HttpDelete("{exerciseId:int}")]
     public async Task<ActionResult> Delete(int exerciseId)
     {
-        var exerciseToDelete = await _exerciseRepository.GetExerciseAsync(exerciseId);
+        var exerciseToDelete = await _exerciseRepository.GetAsync(exerciseId);
         
         if (exerciseToDelete is null) return NotFound("The exercise you tried to delete wasn't found");
         
-        _exerciseRepository.DeleteExercise(exerciseToDelete);
+        _exerciseRepository.Delete(exerciseToDelete);
 
         await _exerciseRepository.SaveChangesAsync();
 

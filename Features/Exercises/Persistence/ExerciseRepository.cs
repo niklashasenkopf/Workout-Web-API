@@ -1,6 +1,7 @@
 using C_Sharp_Web_API.DbContexts;
 using C_Sharp_Web_API.Features.Exercises.Domain;
 using C_Sharp_Web_API.Features.SetEntries.Domain;
+using C_Sharp_Web_API.Shared;
 using Microsoft.EntityFrameworkCore;
 
 namespace C_Sharp_Web_API.Features.Exercises.Persistence;
@@ -9,13 +10,42 @@ public class ExerciseRepository(WorkoutContext context) : IExerciseRepository
 {
 
     private readonly WorkoutContext _context = context ?? throw new ArgumentNullException(nameof(context));
-    
-    public async Task<IEnumerable<Exercise>> GetExercisesAsync()
-    {
-        return await _context.Exercises.ToListAsync();
+
+    public async Task<(IEnumerable<Exercise>, PaginationMetadata)> GetAllAsync(
+        string? name, 
+        string? searchQuery, 
+        int pageNumber, 
+        int pageSize)
+    { 
+        // collection to start from
+        IQueryable<Exercise> collection = _context.Exercises;
+
+        if (!string.IsNullOrWhiteSpace(name))
+        {
+            name = name.Trim();
+            collection = collection.Where(c => c.Name == name);
+        }
+
+        if (!string.IsNullOrWhiteSpace(searchQuery))
+        {
+            searchQuery = searchQuery.Trim();
+            collection = collection.Where(e => e.Name.Contains(searchQuery));
+        }
+
+        var totalItemCount = await collection.CountAsync();
+
+        var paginationMetadata = new PaginationMetadata(totalItemCount, pageSize, pageNumber);
+
+        var collectionToReturn =  await collection
+            .OrderBy(e => e.Name)
+            .Skip(pageSize * (pageNumber - 1))
+            .Take(pageSize)
+            .ToListAsync();
+
+        return (collectionToReturn, paginationMetadata);
     }
 
-    public async Task<Exercise?> GetExerciseAsync(int exerciseId, bool includeSetEntries = false)
+    public async Task<Exercise?> GetAsync(int exerciseId, bool includeSetEntries = false)
     {
         if (includeSetEntries)
         {
@@ -26,7 +56,7 @@ public class ExerciseRepository(WorkoutContext context) : IExerciseRepository
         return await _context.Exercises.Where(e => e.Id == exerciseId).FirstOrDefaultAsync();
     }
 
-    public async Task CreateExerciseAsync(Exercise exercise)
+    public async Task CreateAsync(Exercise exercise)
     {
         await _context.Exercises.AddAsync(exercise);
     }
@@ -36,7 +66,7 @@ public class ExerciseRepository(WorkoutContext context) : IExerciseRepository
         return (await _context.SaveChangesAsync() >= 0); 
     }
 
-    public void DeleteExercise(Exercise exercise)
+    public void Delete(Exercise exercise)
     {
         _context.Exercises.Remove(exercise);
     }
@@ -48,19 +78,59 @@ public class ExerciseRepository(WorkoutContext context) : IExerciseRepository
             .FirstOrDefaultAsync();
     }
 
-    public async Task<IEnumerable<SetEntry>> GetSetEntriesForExercise(int exerciseId)
+    public async Task<(IEnumerable<SetEntry>, PaginationMetadata)> GetSetEntriesForExercise(
+        int exerciseId,
+        DateOnly? date,
+        string? searchQuery,
+        int pageSize,
+        int pageNumber)
     {
-        return await _context.SetEntries.Where(se => se.ExerciseId == exerciseId).ToListAsync();
+        var collection = _context.SetEntries.Where(se => se.ExerciseId == exerciseId);
+
+        if (date.HasValue)
+        {
+            collection = collection.Where(se => se.Date == date);
+        }
+
+        if (!string.IsNullOrWhiteSpace(searchQuery))
+        {
+            if (DateOnly.TryParseExact(searchQuery, "yyyy-MM-dd", out var exactDate))
+            {
+                collection = collection.Where(se => se.Date == exactDate);
+            }
+            else if(DateOnly.TryParseExact(searchQuery, "yyyy-MM", out var yearMonth))
+            {
+                collection = collection.Where(
+                    se => se.Date.Year == yearMonth.Year && se.Date.Month == yearMonth.Month);
+            }
+            else if (int.TryParse(searchQuery, out var year))
+            {
+                collection = collection.Where(se => se.Date.Year == year);
+            }
+        }
+
+        var totalItemCount = await collection.CountAsync();
+
+        var paginationMetadata = new PaginationMetadata(totalItemCount, pageSize, pageNumber);
+        
+        
+        var collectionToReturn =  await collection
+            .OrderByDescending(se => se.Date)
+            .Skip(pageSize * (pageNumber - 1))
+            .Take(pageSize)
+            .ToListAsync();
+
+        return (collectionToReturn, paginationMetadata);
     }
 
-    public async Task<bool> ExerciseExistsAsync(int exerciseId)
+    public async Task<bool> ExistsAsync(int exerciseId)
     {
         return await _context.Exercises.AnyAsync(e => e.Id == exerciseId);
     }
 
     public async Task AddSetEntryForExerciseAsync(int exerciseId, SetEntry setEntry)
     {
-        var exercise = await GetExerciseAsync(exerciseId);
+        var exercise = await GetAsync(exerciseId);
         
         exercise?.SetEntries.Add(setEntry);
     }

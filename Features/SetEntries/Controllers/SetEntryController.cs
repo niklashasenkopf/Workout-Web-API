@@ -1,3 +1,4 @@
+using System.Text.Json;
 using AutoMapper;
 using C_Sharp_Web_API.Features.Exercises.Persistence;
 using C_Sharp_Web_API.Features.SetEntries.Domain;
@@ -21,16 +22,25 @@ public class SetEntryController(
         mapper ?? throw new ArgumentNullException(nameof(mapper));
 
     [HttpGet]
-    public async Task<ActionResult<IEnumerable<SetEntryDto>>> GetAll(int exerciseId)
+    public async Task<ActionResult<IEnumerable<SetEntryDto>>> GetAll(
+        int exerciseId,
+        [FromQuery] DateOnly? date,
+        [FromQuery] string? searchQuery,
+        [FromQuery] int pageNumber = 1,
+        [FromQuery] int pageSize = 10
+        )
     {
-        if (!await _exerciseRepository.ExerciseExistsAsync(exerciseId))
+        if (!await _exerciseRepository.ExistsAsync(exerciseId))
         {
             return NotFound();
         }
         
-        var setEntriesOfExercise = await _exerciseRepository.GetSetEntriesForExercise(exerciseId);
+        var (setEntriesOfExercise, paginationMetadata) = 
+            await _exerciseRepository.GetSetEntriesForExercise(exerciseId, date, searchQuery, pageSize, pageNumber);
 
         var mappedSetEntries = _mapper.Map<IEnumerable<SetEntryDto>>(setEntriesOfExercise);
+
+        Response.Headers.Append("X-Pagination", JsonSerializer.Serialize(paginationMetadata));
 
         return Ok(mappedSetEntries);
     }
@@ -38,7 +48,7 @@ public class SetEntryController(
     [HttpGet("{setEntryId:int}", Name = "GetSetEntry")]
     public async Task<ActionResult<SetEntryDto>> Get(int exerciseId, int setEntryId)
     {
-        if (!await _exerciseRepository.ExerciseExistsAsync(exerciseId))
+        if (!await _exerciseRepository.ExistsAsync(exerciseId))
         {
             return NotFound();
         }
@@ -57,7 +67,7 @@ public class SetEntryController(
         int exerciseId, 
         SetEntryCreateRequestDto createRequest)
     {
-        if (!await _exerciseRepository.ExerciseExistsAsync(exerciseId)) return NotFound();
+        if (!await _exerciseRepository.ExistsAsync(exerciseId)) return NotFound();
         
         var finalSetEntry = _mapper.Map<SetEntry>(createRequest);
 
@@ -81,7 +91,7 @@ public class SetEntryController(
         int setEntryId,
         SetEntryUpdateRequestDto updateRequest)
     {
-        if (!await _exerciseRepository.ExerciseExistsAsync(exerciseId)) return NotFound();
+        if (!await _exerciseRepository.ExistsAsync(exerciseId)) return NotFound();
 
         var setEntryEntity = await _exerciseRepository.GetSetEntryForExercise(exerciseId, setEntryId);
 
@@ -100,7 +110,7 @@ public class SetEntryController(
         int setEntryId,
         JsonPatchDocument<SetEntryUpdateRequestDto> patchDocument)
     {
-        if (!await _exerciseRepository.ExerciseExistsAsync(exerciseId)) return NotFound();
+        if (!await _exerciseRepository.ExistsAsync(exerciseId)) return NotFound();
 
         var setEntryEntity = await _exerciseRepository.GetSetEntryForExercise(exerciseId, setEntryId);
 
@@ -125,7 +135,7 @@ public class SetEntryController(
     [HttpDelete("{setEntryId:int}")]
     public async Task<ActionResult> Delete(int exerciseId, int setEntryId)
     {
-        if (!await _exerciseRepository.ExerciseExistsAsync(exerciseId)) return NotFound();
+        if (!await _exerciseRepository.ExistsAsync(exerciseId)) return NotFound();
 
         var setEntryToDelete = await _exerciseRepository.GetSetEntryForExercise(exerciseId, setEntryId);
 
