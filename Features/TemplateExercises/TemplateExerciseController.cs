@@ -13,14 +13,14 @@ namespace C_Sharp_Web_API.Features.Exercises.Controllers;
 [ApiController]
 [Authorize]
 [Route("api/exercises")]
-public class ExerciseController(
-    IExerciseRepository exerciseRepository,
+public class TemplateExerciseController(
+    ITemplateExerciseRepository templateExerciseRepository,
     IMapper mapper
     ) : ControllerBase
 {
     
-    private readonly IExerciseRepository _exerciseRepository = 
-        exerciseRepository ?? throw new ArgumentNullException(nameof(exerciseRepository));
+    private readonly ITemplateExerciseRepository _templateExerciseRepository = 
+        templateExerciseRepository ?? throw new ArgumentNullException(nameof(templateExerciseRepository));
     
     private readonly IMapper _mapper = 
         mapper ?? throw new ArgumentNullException(nameof(mapper));
@@ -28,7 +28,7 @@ public class ExerciseController(
     private const int MaxPageSize = 20; 
     
     [HttpGet]
-    public async Task<ActionResult<IEnumerable<ExerciseWithoutSetEntriesDto>>> GetAll(
+    public async Task<ActionResult<IEnumerable<TemplateExerciseDto>>> GetAll(
         [FromQuery] string? name,
         [FromQuery] string? searchQuery,
         [FromQuery] int pageNumber = 1,
@@ -41,9 +41,9 @@ public class ExerciseController(
         }
         
         var (exerciseEntities, paginationMetadata) = 
-            await _exerciseRepository.GetAllAsync(name, searchQuery, pageNumber, pageSize);
+            await _templateExerciseRepository.GetAllAsync(name, searchQuery, pageNumber, pageSize);
         
-        var mappedExercises = _mapper.Map<IEnumerable<ExerciseWithoutSetEntriesDto>>(exerciseEntities);
+        var mappedExercises = _mapper.Map<IEnumerable<TemplateExerciseDto>>(exerciseEntities);
         
         Response.Headers.Append("X-Pagination", JsonSerializer.Serialize(paginationMetadata));
 
@@ -53,30 +53,30 @@ public class ExerciseController(
     [HttpGet("{id:int}", Name = "GetExercise")]
     public async Task<IActionResult> Get(int id, bool includeSetEntries)
     {
-        var exercise = await _exerciseRepository.GetAsync(id, includeSetEntries);
+        var exercise = await _templateExerciseRepository.GetAsync(id, includeSetEntries);
 
         if (exercise is null) return NotFound($"Exercise with id: {id} wasn't found when accessing exercises");
 
         if (includeSetEntries)
         {
-            var mappedExerciseWithSetEntries = _mapper.Map<ExerciseDto>(exercise);
+            var mappedExerciseWithSetEntries = _mapper.Map<TemplateExerciseDto>(exercise);
             return Ok(mappedExerciseWithSetEntries);
         }
 
-        var mappedExercise = _mapper.Map<ExerciseWithoutSetEntriesDto>(exercise);
+        var mappedExercise = _mapper.Map<TemplateExerciseDto>(exercise);
         return Ok(mappedExercise);
     }
 
     [HttpPost]
-    public async Task<ActionResult<ExerciseDto>> Create(ExerciseCreateRequestDto request)
+    public async Task<ActionResult<TemplateExerciseDto>> Create(TemplateExerciseCreateRequestDto request)
     {
-        var exercise = _mapper.Map<Exercise>(request);
+        var exercise = _mapper.Map<TemplateExercise>(request);
         
-        await _exerciseRepository.CreateAsync(exercise);
+        await _templateExerciseRepository.CreateAsync(exercise);
 
-        await _exerciseRepository.SaveChangesAsync();
+        await _templateExerciseRepository.SaveChangesAsync();
 
-        var createdExercise = _mapper.Map<ExerciseDto>(exercise);
+        var createdExercise = _mapper.Map<TemplateExerciseDto>(exercise);
 
         return CreatedAtRoute(
             "GetExercise",
@@ -86,15 +86,15 @@ public class ExerciseController(
     }
 
     [HttpPut("{exerciseId:int}")]
-    public async Task<ActionResult> Update(int exerciseId, ExerciseUpdateRequestDto request)
+    public async Task<ActionResult> Update(int exerciseId, TemplateExerciseUpdateRequestDto request)
     {
-        var exercise = await _exerciseRepository.GetAsync(exerciseId);
+        var exercise = await _templateExerciseRepository.GetAsync(exerciseId);
 
         if (exercise is null) return NotFound("The exercise you tried to update was not found in the database");
 
         _mapper.Map(request, exercise);
 
-        await _exerciseRepository.SaveChangesAsync();
+        await _templateExerciseRepository.SaveChangesAsync();
 
         return NoContent();
     }
@@ -102,13 +102,13 @@ public class ExerciseController(
     [HttpPatch("{exerciseId:int}")]
     public async Task<ActionResult> PartiallyUpdate(
         int exerciseId, 
-        JsonPatchDocument<ExerciseUpdateRequestDto> patchDocument)
+        JsonPatchDocument<TemplateExerciseUpdateRequestDto> patchDocument)
     {
-        var exercise = await _exerciseRepository.GetAsync(exerciseId);
+        var exercise = await _templateExerciseRepository.GetAsync(exerciseId);
 
         if (exercise is null) return NotFound("The exercise you tried to update was not found in the database");
 
-        var exerciseToPatch = _mapper.Map<ExerciseUpdateRequestDto>(exercise);
+        var exerciseToPatch = _mapper.Map<TemplateExerciseUpdateRequestDto>(exercise);
         
         patchDocument.ApplyTo(exerciseToPatch, ModelState);
 
@@ -119,7 +119,7 @@ public class ExerciseController(
 
         _mapper.Map(exerciseToPatch, exercise);
 
-        await _exerciseRepository.SaveChangesAsync();
+        await _templateExerciseRepository.SaveChangesAsync();
 
         return NoContent();
     }
@@ -127,13 +127,13 @@ public class ExerciseController(
     [HttpDelete("{exerciseId:int}")]
     public async Task<ActionResult> Delete(int exerciseId)
     {
-        var exerciseToDelete = await _exerciseRepository.GetAsync(exerciseId);
+        var exerciseToDelete = await _templateExerciseRepository.GetAsync(exerciseId);
         
         if (exerciseToDelete is null) return NotFound("The exercise you tried to delete wasn't found");
         
-        _exerciseRepository.Delete(exerciseToDelete);
+        _templateExerciseRepository.Delete(exerciseToDelete);
 
-        await _exerciseRepository.SaveChangesAsync();
+        await _templateExerciseRepository.SaveChangesAsync();
 
         return NoContent();
     }

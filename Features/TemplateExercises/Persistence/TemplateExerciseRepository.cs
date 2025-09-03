@@ -6,19 +6,19 @@ using Microsoft.EntityFrameworkCore;
 
 namespace C_Sharp_Web_API.Features.Exercises.Persistence;
 
-public class ExerciseRepository(AppDatabaseContext context) : IExerciseRepository
+public class TemplateExerciseRepository(AppDatabaseContext context) : ITemplateExerciseRepository
 {
 
     private readonly AppDatabaseContext _context = context ?? throw new ArgumentNullException(nameof(context));
 
-    public async Task<(IEnumerable<Exercise>, PaginationMetadata)> GetAllAsync(
+    public async Task<(IEnumerable<TemplateExercise>, PaginationMetadata)> GetAllAsync(
         string? name, 
         string? searchQuery, 
         int pageNumber, 
         int pageSize)
     { 
         // collection to start from
-        IQueryable<Exercise> collection = _context.Exercises;
+        IQueryable<TemplateExercise> collection = _context.Exercises;
 
         if (!string.IsNullOrWhiteSpace(name))
         {
@@ -45,20 +45,14 @@ public class ExerciseRepository(AppDatabaseContext context) : IExerciseRepositor
         return (collectionToReturn, paginationMetadata);
     }
 
-    public async Task<Exercise?> GetAsync(int exerciseId, bool includeSetEntries = false)
+    public async Task<TemplateExercise?> GetAsync(int exerciseId, bool includeSetEntries = false)
     {
-        if (includeSetEntries)
-        {
-            return await _context.Exercises.Include(e => e.SetEntries)
-                .Where(e => e.Id == exerciseId).FirstOrDefaultAsync();
-        }
-
         return await _context.Exercises.Where(e => e.Id == exerciseId).FirstOrDefaultAsync();
     }
 
-    public async Task CreateAsync(Exercise exercise)
+    public async Task CreateAsync(TemplateExercise templateExercise)
     {
-        await _context.Exercises.AddAsync(exercise);
+        await _context.Exercises.AddAsync(templateExercise);
     }
 
     public async Task<bool> SaveChangesAsync()
@@ -66,15 +60,15 @@ public class ExerciseRepository(AppDatabaseContext context) : IExerciseRepositor
         return (await _context.SaveChangesAsync() >= 0); 
     }
 
-    public void Delete(Exercise exercise)
+    public void Delete(TemplateExercise templateExercise)
     {
-        _context.Exercises.Remove(exercise);
+        _context.Exercises.Remove(templateExercise);
     }
 
     public async Task<SetEntry?> GetSetEntryForExercise(int exerciseId, int setEntryId)
     {
         return await _context.SetEntries
-            .Where(se => se.ExerciseId == exerciseId && se.Id == setEntryId)
+            .Where(se => se.WorkoutExerciseId == exerciseId && se.Id == setEntryId)
             .FirstOrDefaultAsync();
     }
 
@@ -85,7 +79,7 @@ public class ExerciseRepository(AppDatabaseContext context) : IExerciseRepositor
         int pageSize,
         int pageNumber)
     {
-        var collection = _context.SetEntries.Where(se => se.ExerciseId == exerciseId);
+        var collection = _context.SetEntries.Where(se => se.WorkoutExerciseId == exerciseId);
 
         if (date.HasValue)
         {
@@ -126,17 +120,5 @@ public class ExerciseRepository(AppDatabaseContext context) : IExerciseRepositor
     public async Task<bool> ExistsAsync(int exerciseId)
     {
         return await _context.Exercises.AnyAsync(e => e.Id == exerciseId);
-    }
-
-    public async Task AddSetEntryForExerciseAsync(int exerciseId, SetEntry setEntry)
-    {
-        var exercise = await GetAsync(exerciseId);
-        
-        exercise?.SetEntries.Add(setEntry);
-    }
-
-    public void DeleteSetEntryForExercise(SetEntry setEntry)
-    {
-        _context.SetEntries.Remove(setEntry);
     }
 }

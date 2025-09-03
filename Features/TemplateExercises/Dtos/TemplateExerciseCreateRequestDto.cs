@@ -3,7 +3,7 @@ using C_Sharp_Web_API.Features.Exercises.Domain;
 
 namespace C_Sharp_Web_API.Features.Exercises.Dtos;
 
-public class ExerciseCreateRequestDto
+public class TemplateExerciseCreateRequestDto
 {
     [Required(ErrorMessage = "A valid name has to be supplied.")]
     [MaxLength(100)]

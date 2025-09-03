@@ -1,8 +1,7 @@
 using AutoMapper;
-using C_Sharp_Web_API.Features.Workouts.Domain;
 using C_Sharp_Web_API.Features.Workouts.Dtos;
 
-namespace C_Sharp_Web_API.Features.Workouts.Mappings;
+namespace C_Sharp_Web_API.Features.Workouts;
 
 public class WorkoutsMappingProfile : Profile
 {

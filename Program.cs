@@ -1,7 +1,9 @@
 using System.Text;
+using C_Sharp_Web_API.Authentication;
 using C_Sharp_Web_API.DbContexts;
 using C_Sharp_Web_API.Features.Exercises.Persistence;
 using C_Sharp_Web_API.Features.Workouts.Persistence;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 
@@ -22,7 +24,7 @@ builder.Services.AddOpenApi();
 builder.Services.AddProblemDetails();
 builder.Services.AddDbContext<AppDatabaseContext>(dbContextOptions => 
     dbContextOptions.UseNpgsql(builder.Configuration["ConnectionStrings:WorkoutDb"]));
-builder.Services.AddScoped<IExerciseRepository, ExerciseRepository>();
+builder.Services.AddScoped<ITemplateExerciseRepository, TemplateExerciseRepository>();
 builder.Services.AddScoped<IWorkoutRepository, WorkoutRepository>();
 builder.Services.AddAutoMapper(cfg => {}, AppDomain.CurrentDomain.GetAssemblies());
 builder.Services.AddAuthentication(options =>
@@ -43,6 +45,16 @@ builder.Services.AddAuthentication(options =>
             Encoding.UTF8.GetBytes(builder.Configuration["Authentication:SecretForKey"] ?? ""))
     };
 });
+builder.Services.AddIdentity<ApiUser, IdentityRole<Guid>>(options =>
+    {
+        // (Optional) relaxed password rules for dev
+        options.Password.RequireDigit = false;
+        options.Password.RequireUppercase = false;
+        options.Password.RequireNonAlphanumeric = false;
+        options.Password.RequiredLength = 6;
+    })
+    .AddEntityFrameworkStores<AppDatabaseContext>()
+    .AddDefaultTokenProviders();
 
 var app = builder.Build();
 
@@ -55,6 +67,7 @@ if (!app.Environment.IsDevelopment())
 
 if (app.Environment.IsDevelopment())
 {
+    await AppSeeder.SeedAsync(app.Services);
     app.MapOpenApi();
 }
 

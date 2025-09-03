@@ -3,7 +3,7 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace C_Sharp_Web_API.Authentication;
 
-[Route("api/register")]
+[Route("workout-api/authentication")]
 [ApiController]
 public class RegistrationController(
     UserManager<ApiUser> userManager,
@@ -23,7 +23,7 @@ public class RegistrationController(
         public string? Password { get; set; }
     }
 
-    [HttpPost]
+    [HttpPost("register")]
     public async Task<IActionResult> Register([FromBody] RegisterRequest request)
     {
         if (string.IsNullOrWhiteSpace(request.Email)

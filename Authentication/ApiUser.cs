@@ -1,4 +1,4 @@
-using C_Sharp_Web_API.Features.Workouts.Domain;
+using C_Sharp_Web_API.Features.Workouts;
 using Microsoft.AspNetCore.Identity;
 
 namespace C_Sharp_Web_API.Authentication;

@@ -1,4 +1,4 @@
-using C_Sharp_Web_API.Features.Exercises.Dtos;
+using C_Sharp_Web_API.FeaturesNew.WorkoutExercises.Domain;
 
 namespace C_Sharp_Web_API.Features.Workouts.Dtos;
 
@@ -8,5 +8,5 @@ public class WorkoutDto
     
     public string Name { get; init; } = string.Empty;
 
-    public ICollection<ExerciseWithoutSetEntriesDto> Exercises { get; init; } = new List<ExerciseWithoutSetEntriesDto>();
+    public ICollection<WorkoutExercise> Exercises { get; init; } = new List<WorkoutExercise>();
 }

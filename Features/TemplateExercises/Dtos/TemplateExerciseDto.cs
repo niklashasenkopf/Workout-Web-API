@@ -2,7 +2,7 @@ using C_Sharp_Web_API.Features.SetEntries.Dtos;
 
 namespace C_Sharp_Web_API.Features.Exercises.dtos;
 
-public class ExerciseDto 
+public class TemplateExerciseDto 
 {
     public int Id { get; init; }
     

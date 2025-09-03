@@ -1,23 +1,18 @@
 using System.Text.Json;
 using AutoMapper;
-using C_Sharp_Web_API.Features.Exercises.Persistence;
-using C_Sharp_Web_API.Features.Workouts.Domain;
 using C_Sharp_Web_API.Features.Workouts.Dtos;
 using C_Sharp_Web_API.Features.Workouts.Persistence;
-using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.JsonPatch;
 using Microsoft.AspNetCore.Mvc;
 
-namespace C_Sharp_Web_API.Features.Workouts.Controllers;
+namespace C_Sharp_Web_API.Features.Workouts;
 
 
 [ApiController]
-[Authorize]
-[Route("api/workouts")]
+[Route("workout-api/workouts")]
 public class WorkoutController(
     IWorkoutRepository workoutRepository,
-    IMapper mapper,
-    IExerciseRepository exerciseRepository
+    IMapper mapper
     ) : ControllerBase
 {
     private readonly IWorkoutRepository _workoutRepository =
@@ -25,10 +20,7 @@ public class WorkoutController(
 
     private readonly IMapper _mapper =
         mapper ?? throw new ArgumentNullException(nameof(mapper));
-
-    private readonly IExerciseRepository _exerciseRepository =
-        exerciseRepository ?? throw new ArgumentNullException((nameof(exerciseRepository)));
-
+    
     [HttpGet]
     public async Task<ActionResult<IEnumerable<WorkoutWithoutExercisesDto>>> GetAll(
         [FromQuery] string? name,
@@ -48,18 +40,12 @@ public class WorkoutController(
     }
 
     [HttpGet("{workoutId:int}", Name = "GetWorkout")]
-    public async Task<IActionResult> Get(int workoutId, bool includeExercises)
+    public async Task<IActionResult> Get(int workoutId)
     {
-        var workoutEntity = await _workoutRepository.GetAsync(workoutId, includeExercises);
+        var workoutEntity = await _workoutRepository.GetAsync(workoutId);
 
         if (workoutEntity is null) return NotFound();
-
-        if (includeExercises)
-        {
-            var mappedWorkoutWithExercises = _mapper.Map<WorkoutDto>(workoutEntity);
-            return Ok(mappedWorkoutWithExercises);
-        }
-
+        
         var mappedWorkoutWithoutExercises = _mapper.Map<WorkoutWithoutExercisesDto>(workoutEntity);
         return Ok(mappedWorkoutWithoutExercises);
     }
@@ -129,38 +115,6 @@ public class WorkoutController(
         if (workoutToDelete is null) return NoContent();
         
         _workoutRepository.Delete(workoutToDelete);
-
-        await _workoutRepository.SaveChangesAsync();
-
-        return NoContent();
-    }
-
-    [HttpPost("{workoutId:int}/exercises/{exerciseId:int}")]
-    public async Task<IActionResult> AddExerciseToWorkout(int workoutId, int exerciseId)
-    {
-        var workout = await _workoutRepository.GetAsync(workoutId);
-        if (workout is null) return NotFound("Workout not found");
-
-        var exercise = await _exerciseRepository.GetAsync(exerciseId);
-        if (exercise is null) return NotFound("Exercise not found");
-
-        _workoutRepository.AddExerciseToWorkout(workout, exercise);
-
-        await _workoutRepository.SaveChangesAsync();
-
-        return NoContent();
-    }
-
-    [HttpDelete("{workoutId:int}/exercises/{exerciseId:int}")]
-    public async Task<IActionResult> RemoveExerciseFromWorkout(int workoutId, int exerciseId)
-    {
-        var workout = await _workoutRepository.GetAsync(workoutId, true);
-        if (workout is null) return NoContent();
-
-        var exercise = await _exerciseRepository.GetAsync(exerciseId);
-        if (exercise is null) return NoContent();
-
-        _workoutRepository.RemoveExerciseFromWorkout(workout, exercise);
 
         await _workoutRepository.SaveChangesAsync();
 

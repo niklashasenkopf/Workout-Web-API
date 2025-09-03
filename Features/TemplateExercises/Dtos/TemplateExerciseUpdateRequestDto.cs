@@ -2,7 +2,7 @@ using System.ComponentModel.DataAnnotations;
 
 namespace C_Sharp_Web_API.Features.Exercises.Dtos;
 
-public class ExerciseUpdateRequestDto
+public class TemplateExerciseUpdateRequestDto
 {
     [Required(ErrorMessage = "A valid name has to be supplied.")]
     public string Name { get; init; } = string.Empty;

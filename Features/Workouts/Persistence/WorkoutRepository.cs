@@ -1,6 +1,6 @@
 using C_Sharp_Web_API.DbContexts;
-using C_Sharp_Web_API.Features.Exercises.Domain;
-using C_Sharp_Web_API.Features.Workouts.Domain;
+using C_Sharp_Web_API.Features.SetEntries.Domain;
+using C_Sharp_Web_API.FeaturesNew.WorkoutExercises.Domain;
 using C_Sharp_Web_API.Shared;
 using Microsoft.EntityFrameworkCore;
 
@@ -44,15 +44,8 @@ public class WorkoutRepository(AppDatabaseContext appDatabaseContext) : IWorkout
         return (collectionToReturn, paginationMetadata);
     }
 
-    public async Task<Workout?> GetAsync(int workoutId, bool includeExercises)
+    public async Task<Workout?> GetAsync(int workoutId)
     {
-        if (includeExercises)
-        {
-            return await _appDatabaseContext.Workouts
-                .Include(w => w.Exercises)
-                .FirstOrDefaultAsync(w => w.Id == workoutId);
-        }
-
         return await _appDatabaseContext.Workouts.FirstOrDefaultAsync(w => w.Id == workoutId);
     }
 
@@ -66,22 +59,61 @@ public class WorkoutRepository(AppDatabaseContext appDatabaseContext) : IWorkout
         _appDatabaseContext.Workouts.Remove(workout);
     }
 
-    public void AddExerciseToWorkout(Workout workout, Exercise exercise)
-    {
-        if (!workout.Exercises.Any(e => e.Id == exercise.Id))
-        {
-            workout.Exercises.Add(exercise);
-        }
-    }
-
-    public void RemoveExerciseFromWorkout(Workout workout, Exercise exercise)
-    {
-        workout.Exercises.Remove(exercise);
-    }
-
-    public async Task<bool> WorkoutExistsAsync(int workoutId)
+    public async Task<bool> ExistsAsync(int workoutId)
     {
         return await _appDatabaseContext.Workouts.AnyAsync(w => w.Id == workoutId);
+    }
+
+    public Task<IEnumerable<WorkoutExercise>> GetAllExercisesAsync(int workoutId)
+    {
+        //TODO: Implement
+        throw new NotImplementedException();
+    }
+
+    public Task<WorkoutExercise?> GetExerciseAsync(int workoutId, int workoutExerciseId)
+    {
+        //TODO: Implement
+        throw new NotImplementedException();
+    }
+
+    public Task CreateExerciseAsync(int workoutId, WorkoutExercise workoutExercise)
+    {
+        //TODO: Implement
+        throw new NotImplementedException();
+    }
+
+    public void DeleteExercise(int workoutId, WorkoutExercise workoutExercise)
+    {
+        //TODO: Implement
+        throw new NotImplementedException();
+    }
+
+    public Task<(IEnumerable<SetEntry>, PaginationMetadata)> GetAllSetEntriesAsync(
+        int workoutId, int workoutExerciseId, DateOnly? date, string? searchQuery, int pageSize, int pageNumber)
+    {
+        //TODO: Implement
+        throw new NotImplementedException();
+    }
+
+    public Task<SetEntry?> GetSetEntryAsync(
+        int workoutId, int workoutExerciseId, int setEntryId)
+    {
+        //TODO: Implement
+        throw new NotImplementedException();
+    }
+
+    public Task CreateSetEntryAsync(
+        int workoutId, int workoutExerciseId, SetEntry setEntry)
+    {
+        //TODO: Implement
+        throw new NotImplementedException();
+    }
+
+    public void DeleteSetEntry(
+        int workoutId, int workoutExerciseId, SetEntry setEntry)
+    {
+        //TODO: Implement
+        throw new NotImplementedException();
     }
 
     public async Task<int> SaveChangesAsync()

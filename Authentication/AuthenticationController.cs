@@ -8,7 +8,7 @@ using JwtRegisteredClaimNames = Microsoft.IdentityModel.JsonWebTokens.JwtRegiste
 
 namespace C_Sharp_Web_API.Authentication;
 
-[Route("api/authentication")]
+[Route("workout-api/authentication")]
 [ApiController]
 public class AuthenticationController(
     UserManager<ApiUser> userManager,
@@ -37,7 +37,7 @@ public class AuthenticationController(
         public DateTime ExpiresAtUtc { get; set; } = expiresAt;
     }
     
-    [HttpPost("authenticate")]
+    [HttpPost("login")]
     public async Task<ActionResult<string>> Authenticate(
         [FromBody] LoginRequest loginRequest)
     {
