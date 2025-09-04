@@ -1,4 +1,4 @@
-using C_Sharp_Web_API.FeaturesNew.WorkoutExercises.Domain;
+using C_Sharp_Web_API.Features.WorkoutExercises;
 
 namespace C_Sharp_Web_API.Features.Workouts.Dtos;
 

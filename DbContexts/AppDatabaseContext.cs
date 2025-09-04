@@ -1,6 +1,7 @@
 using C_Sharp_Web_API.Authentication;
-using C_Sharp_Web_API.Features.Exercises.Domain;
-using C_Sharp_Web_API.Features.SetEntries.Domain;
+using C_Sharp_Web_API.Features.SetEntries;
+using C_Sharp_Web_API.Features.TemplateExercises;
+using C_Sharp_Web_API.Features.WorkoutExercises;
 using C_Sharp_Web_API.Features.Workouts;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
@@ -10,7 +11,8 @@ namespace C_Sharp_Web_API.DbContexts;
 
 public class AppDatabaseContext : IdentityDbContext<ApiUser, IdentityRole<Guid>, Guid>
 {
-    public DbSet<TemplateExercise> Exercises { get; set; }
+    public DbSet<TemplateExercise> TemplateExercises { get; set; }
+    public DbSet<WorkoutExercise> WorkoutExercises { get; set; }
     public DbSet<SetEntry> SetEntries { get; set; }
     public DbSet<Workout> Workouts { get; set; }
 

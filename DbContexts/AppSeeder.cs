@@ -1,7 +1,7 @@
 using C_Sharp_Web_API.Authentication;
-using C_Sharp_Web_API.Features.SetEntries.Domain;
+using C_Sharp_Web_API.Features.SetEntries;
+using C_Sharp_Web_API.Features.WorkoutExercises;
 using C_Sharp_Web_API.Features.Workouts;
-using C_Sharp_Web_API.FeaturesNew.WorkoutExercises.Domain;
 
 namespace C_Sharp_Web_API.DbContexts;
 
@@ -31,6 +31,24 @@ public static class AppSeeder
                 EmailConfirmed = true
             };
             var result = await userManager.CreateAsync(user, "Pass123!");
+            if (!result.Succeeded)
+            {
+                throw new Exception(string.Join(", ", result.Errors.Select(e => e.Description)));
+            }
+        }
+        
+        // Create second user
+        const string email2 = "test2@example.com";
+        var user2 = await userManager.FindByEmailAsync(email2);
+        if (user2 == null)
+        {
+            user2 = new ApiUser
+            {
+                UserName = "testuser2",
+                Email = email2,
+                EmailConfirmed = true
+            };
+            var result = await userManager.CreateAsync(user2, "Pass123!");
             if (!result.Succeeded)
             {
                 throw new Exception(string.Join(", ", result.Errors.Select(e => e.Description)));

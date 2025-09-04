@@ -1,6 +1,6 @@
 using C_Sharp_Web_API.DbContexts;
-using C_Sharp_Web_API.Features.SetEntries.Domain;
-using C_Sharp_Web_API.FeaturesNew.WorkoutExercises.Domain;
+using C_Sharp_Web_API.Features.SetEntries;
+using C_Sharp_Web_API.Features.WorkoutExercises;
 using C_Sharp_Web_API.Shared;
 using Microsoft.EntityFrameworkCore;
 
@@ -12,12 +12,14 @@ public class WorkoutRepository(AppDatabaseContext appDatabaseContext) : IWorkout
         appDatabaseContext ?? throw new ArgumentNullException(nameof(appDatabaseContext));
 
     public async Task<(IEnumerable<Workout>, PaginationMetadata)> GetAllAsync(
+        Guid apiUserId,
         string? name, 
         string? searchQuery, 
         int pageNumber, 
         int pageSize)
     {
-        IQueryable<Workout> collection = _appDatabaseContext.Workouts;
+        var collection = 
+            _appDatabaseContext.Workouts.Where(w => w.ApiUserId == apiUserId);
 
         if (!string.IsNullOrWhiteSpace(name))
         {
@@ -44,9 +46,11 @@ public class WorkoutRepository(AppDatabaseContext appDatabaseContext) : IWorkout
         return (collectionToReturn, paginationMetadata);
     }
 
-    public async Task<Workout?> GetAsync(int workoutId)
+    public async Task<Workout?> GetAsync(Guid apiUserId, int workoutId)
     {
-        return await _appDatabaseContext.Workouts.FirstOrDefaultAsync(w => w.Id == workoutId);
+        return await _appDatabaseContext.Workouts
+            .Where(w => w.ApiUserId == apiUserId)
+            .FirstOrDefaultAsync(w => w.Id == workoutId);
     }
 
     public async Task CreateAsync(Workout workout)
@@ -59,61 +63,105 @@ public class WorkoutRepository(AppDatabaseContext appDatabaseContext) : IWorkout
         _appDatabaseContext.Workouts.Remove(workout);
     }
 
-    public async Task<bool> ExistsAsync(int workoutId)
+    public async Task<bool> WorkoutExistsAsync(Guid apiUserId, int workoutId)
     {
-        return await _appDatabaseContext.Workouts.AnyAsync(w => w.Id == workoutId);
+        return await _appDatabaseContext.Workouts
+            .Where(w => w.ApiUserId == apiUserId)
+            .AnyAsync(w => w.Id == workoutId);
     }
 
-    public Task<IEnumerable<WorkoutExercise>> GetAllExercisesAsync(int workoutId)
+    public async Task<IEnumerable<WorkoutExercise>> GetAllExercisesAsync(Guid apiUserId, int workoutId)
     {
-        //TODO: Implement
-        throw new NotImplementedException();
+        var collection = await _appDatabaseContext.WorkoutExercises
+            .Where(we => we.WorkoutId == workoutId 
+                         && we.Workout.ApiUserId == apiUserId)
+            .Include(we => we.TemplateExercise)
+            .ToListAsync();
+
+        return collection;
     }
 
-    public Task<WorkoutExercise?> GetExerciseAsync(int workoutId, int workoutExerciseId)
+    public async Task<WorkoutExercise?> GetExerciseAsync(Guid apiUserId, int workoutId, int workoutExerciseId)
     {
-        //TODO: Implement
-        throw new NotImplementedException();
+        var exercise = await _appDatabaseContext.WorkoutExercises
+            .Where(we => we.Id == workoutExerciseId 
+                         && we.WorkoutId == workoutId 
+                         && we.Workout.ApiUserId == apiUserId)
+            .FirstOrDefaultAsync();
+
+        return exercise;
     }
 
-    public Task CreateExerciseAsync(int workoutId, WorkoutExercise workoutExercise)
+    public async Task CreateExerciseAsync(WorkoutExercise workoutExercise)
     {
-        //TODO: Implement
-        throw new NotImplementedException();
+        await _appDatabaseContext.WorkoutExercises.AddAsync(workoutExercise);
     }
 
-    public void DeleteExercise(int workoutId, WorkoutExercise workoutExercise)
+    public void DeleteExercise(WorkoutExercise workoutExercise)
     {
-        //TODO: Implement
-        throw new NotImplementedException();
+        _appDatabaseContext.WorkoutExercises.Remove(workoutExercise);
     }
 
-    public Task<(IEnumerable<SetEntry>, PaginationMetadata)> GetAllSetEntriesAsync(
-        int workoutId, int workoutExerciseId, DateOnly? date, string? searchQuery, int pageSize, int pageNumber)
+    public async Task<bool> WorkoutExerciseExistsAsync(Guid apiUserId, int workoutId, int workoutExerciseId)
     {
-        //TODO: Implement
-        throw new NotImplementedException();
+        return await _appDatabaseContext.WorkoutExercises
+            .Where(we => we.Id == workoutExerciseId && we.WorkoutId == workoutId && we.Workout.ApiUserId == apiUserId)
+            .AnyAsync();
     }
 
-    public Task<SetEntry?> GetSetEntryAsync(
-        int workoutId, int workoutExerciseId, int setEntryId)
+    public async Task<(IEnumerable<SetEntry>, PaginationMetadata)> GetAllSetEntriesAsync(
+        Guid apiUserId, int workoutId, int workoutExerciseId, 
+        DateOnly? date, string? searchQuery, int pageSize, int pageNumber)
     {
-        //TODO: Implement
-        throw new NotImplementedException();
+        var collection = _appDatabaseContext.SetEntries
+            .Where(se => se.WorkoutExerciseId == workoutExerciseId
+                         && se.WorkoutExercise.WorkoutId == workoutId
+                         && se.WorkoutExercise.Workout.ApiUserId == apiUserId);
+
+        if (date.HasValue)
+        {
+            collection = collection.Where(se => se.Date == date);
+        }
+
+        if (!string.IsNullOrWhiteSpace(searchQuery))
+        {
+            searchQuery = searchQuery.Trim();
+            collection = collection.Where(se => se.Date.ToString().Contains(searchQuery));
+        }
+
+        var totalItemCount = await collection.CountAsync();
+
+        var paginationMetadata = new PaginationMetadata(totalItemCount, pageSize, pageNumber);
+        
+        var collectionToReturn = await collection
+            .OrderByDescending(se => se.Date)
+            .Skip(pageSize * (pageNumber - 1))
+            .Take(pageSize)
+            .ToListAsync();
+
+        return (collectionToReturn, paginationMetadata);
     }
 
-    public Task CreateSetEntryAsync(
-        int workoutId, int workoutExerciseId, SetEntry setEntry)
+    public async Task<SetEntry?> GetSetEntryAsync(
+        Guid apiUserId, int workoutId, int workoutExerciseId, int setEntryId)
     {
-        //TODO: Implement
-        throw new NotImplementedException();
+        return await _appDatabaseContext.SetEntries
+            .Where(se => se.Id == setEntryId
+                         && se.WorkoutExerciseId == workoutExerciseId
+                         && se.WorkoutExercise.WorkoutId == workoutId
+                         && se.WorkoutExercise.Workout.ApiUserId == apiUserId
+            )
+            .FirstOrDefaultAsync();
     }
 
-    public void DeleteSetEntry(
-        int workoutId, int workoutExerciseId, SetEntry setEntry)
+    public async Task CreateSetEntryAsync(SetEntry setEntry)
     {
-        //TODO: Implement
-        throw new NotImplementedException();
+         await _appDatabaseContext.SetEntries.AddAsync(setEntry);
+    }
+
+    public void DeleteSetEntry(SetEntry setEntry)
+    {
+        _appDatabaseContext.SetEntries.Remove(setEntry);
     }
 
     public async Task<int> SaveChangesAsync()

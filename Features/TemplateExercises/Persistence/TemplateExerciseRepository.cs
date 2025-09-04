@@ -1,10 +1,9 @@
 using C_Sharp_Web_API.DbContexts;
-using C_Sharp_Web_API.Features.Exercises.Domain;
-using C_Sharp_Web_API.Features.SetEntries.Domain;
+using C_Sharp_Web_API.Features.SetEntries;
 using C_Sharp_Web_API.Shared;
 using Microsoft.EntityFrameworkCore;
 
-namespace C_Sharp_Web_API.Features.Exercises.Persistence;
+namespace C_Sharp_Web_API.Features.TemplateExercises.Persistence;
 
 public class TemplateExerciseRepository(AppDatabaseContext context) : ITemplateExerciseRepository
 {
@@ -18,7 +17,7 @@ public class TemplateExerciseRepository(AppDatabaseContext context) : ITemplateE
         int pageSize)
     { 
         // collection to start from
-        IQueryable<TemplateExercise> collection = _context.Exercises;
+        IQueryable<TemplateExercise> collection = _context.TemplateExercises;
 
         if (!string.IsNullOrWhiteSpace(name))
         {
@@ -47,12 +46,12 @@ public class TemplateExerciseRepository(AppDatabaseContext context) : ITemplateE
 
     public async Task<TemplateExercise?> GetAsync(int exerciseId, bool includeSetEntries = false)
     {
-        return await _context.Exercises.Where(e => e.Id == exerciseId).FirstOrDefaultAsync();
+        return await _context.TemplateExercises.Where(e => e.Id == exerciseId).FirstOrDefaultAsync();
     }
 
     public async Task CreateAsync(TemplateExercise templateExercise)
     {
-        await _context.Exercises.AddAsync(templateExercise);
+        await _context.TemplateExercises.AddAsync(templateExercise);
     }
 
     public async Task<bool> SaveChangesAsync()
@@ -62,7 +61,7 @@ public class TemplateExerciseRepository(AppDatabaseContext context) : ITemplateE
 
     public void Delete(TemplateExercise templateExercise)
     {
-        _context.Exercises.Remove(templateExercise);
+        _context.TemplateExercises.Remove(templateExercise);
     }
 
     public async Task<SetEntry?> GetSetEntryForExercise(int exerciseId, int setEntryId)
@@ -119,6 +118,6 @@ public class TemplateExerciseRepository(AppDatabaseContext context) : ITemplateE
 
     public async Task<bool> ExistsAsync(int exerciseId)
     {
-        return await _context.Exercises.AnyAsync(e => e.Id == exerciseId);
+        return await _context.TemplateExercises.AnyAsync(e => e.Id == exerciseId);
     }
 }

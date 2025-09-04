@@ -1,8 +1,7 @@
 using AutoMapper;
-using C_Sharp_Web_API.Features.SetEntries.Domain;
 using C_Sharp_Web_API.Features.SetEntries.Dtos;
 
-namespace C_Sharp_Web_API.Features.SetEntries.Mappings;
+namespace C_Sharp_Web_API.Features.SetEntries;
 
 public class SetEntryMappingsProfile : Profile
 {

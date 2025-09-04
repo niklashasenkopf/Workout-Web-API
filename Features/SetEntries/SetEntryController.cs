@@ -1,6 +1,6 @@
+using System.Security.Claims;
 using System.Text.Json;
 using AutoMapper;
-using C_Sharp_Web_API.Features.SetEntries.Domain;
 using C_Sharp_Web_API.Features.SetEntries.Dtos;
 using C_Sharp_Web_API.Features.Workouts.Persistence;
 using Microsoft.AspNetCore.Authorization;
@@ -33,14 +33,14 @@ public class SetEntryController(
         [FromQuery] int pageSize = 10
         )
     {
-        if (!await _workoutRepository.ExistsAsync(workoutId))
+        if (!await _workoutRepository.WorkoutExistsAsync(GetCurrentUserId(), workoutId))
         {
             return NotFound();
         }
         
         var (setEntriesOfExercise, paginationMetadata) = 
             await _workoutRepository.GetAllSetEntriesAsync(
-                workoutId, exerciseId, date, searchQuery, pageSize, pageNumber);
+                GetCurrentUserId(),workoutId, exerciseId, date, searchQuery, pageSize, pageNumber);
 
         var mappedSetEntries = _mapper.Map<IEnumerable<SetEntryDto>>(setEntriesOfExercise);
 
@@ -55,12 +55,7 @@ public class SetEntryController(
         int exerciseId, 
         int setEntryId)
     {
-        if (!await _workoutRepository.ExistsAsync(exerciseId))
-        {
-            return NotFound();
-        }
-
-        var setEntry = await _workoutRepository.GetSetEntryAsync(workoutId, exerciseId, setEntryId);
+        var setEntry = await _workoutRepository.GetSetEntryAsync(GetCurrentUserId(), workoutId, exerciseId, setEntryId);
 
         if (setEntry is null) return NotFound();
 
@@ -75,11 +70,13 @@ public class SetEntryController(
         int exerciseId, 
         SetEntryCreateRequestDto createRequest)
     {
-        if (!await _workoutRepository.ExistsAsync(exerciseId)) return NotFound();
+        if (!await _workoutRepository.WorkoutExerciseExistsAsync(GetCurrentUserId(), workoutId, exerciseId)) return NotFound();
         
         var finalSetEntry = _mapper.Map<SetEntry>(createRequest);
 
-        await _workoutRepository.CreateSetEntryAsync(workoutId, exerciseId, finalSetEntry);
+        finalSetEntry.WorkoutExerciseId = exerciseId;
+
+        await _workoutRepository.CreateSetEntryAsync(finalSetEntry);
 
         await _workoutRepository.SaveChangesAsync();
 
@@ -100,9 +97,7 @@ public class SetEntryController(
         int setEntryId,
         SetEntryUpdateRequestDto updateRequest)
     {
-        if (!await _workoutRepository.ExistsAsync(exerciseId)) return NotFound();
-
-        var setEntryEntity = await _workoutRepository.GetSetEntryAsync(workoutId, exerciseId, setEntryId);
+        var setEntryEntity = await _workoutRepository.GetSetEntryAsync(GetCurrentUserId(), workoutId, exerciseId, setEntryId);
 
         if (setEntryEntity is null) return NotFound();
 
@@ -120,9 +115,7 @@ public class SetEntryController(
         int setEntryId,
         JsonPatchDocument<SetEntryUpdateRequestDto> patchDocument)
     {
-        if (!await _workoutRepository.ExistsAsync(exerciseId)) return NotFound();
-
-        var setEntryEntity = await _workoutRepository.GetSetEntryAsync(workoutId, exerciseId, setEntryId);
+        var setEntryEntity = await _workoutRepository.GetSetEntryAsync(GetCurrentUserId(), workoutId, exerciseId, setEntryId);
 
         if (setEntryEntity is null) return NotFound();
 
@@ -148,16 +141,19 @@ public class SetEntryController(
         int exerciseId, 
         int setEntryId)
     {
-        if (!await _workoutRepository.ExistsAsync(exerciseId)) return NotFound();
-
-        var setEntryToDelete = await _workoutRepository.GetSetEntryAsync(workoutId, exerciseId, setEntryId);
+        var setEntryToDelete = await _workoutRepository.GetSetEntryAsync(GetCurrentUserId(), workoutId, exerciseId, setEntryId);
 
         if (setEntryToDelete is null) return NotFound();
         
-        _workoutRepository.DeleteSetEntry(workoutId, exerciseId, setEntryToDelete);
+        _workoutRepository.DeleteSetEntry(setEntryToDelete);
 
         await _workoutRepository.SaveChangesAsync();
 
         return NoContent();
+    }
+    
+    public Guid GetCurrentUserId()
+    {
+        return Guid.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
     }
 }

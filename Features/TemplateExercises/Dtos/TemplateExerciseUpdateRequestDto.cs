@@ -1,6 +1,6 @@
 using System.ComponentModel.DataAnnotations;
 
-namespace C_Sharp_Web_API.Features.Exercises.Dtos;
+namespace C_Sharp_Web_API.Features.TemplateExercises.Dtos;
 
 public class TemplateExerciseUpdateRequestDto
 {

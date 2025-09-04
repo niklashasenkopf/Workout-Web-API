@@ -1,7 +1,5 @@
 using AutoMapper;
-using C_Sharp_Web_API.Features.Exercises.Domain;
-using C_Sharp_Web_API.Features.Exercises.dtos;
-using C_Sharp_Web_API.Features.Exercises.Dtos;
+using C_Sharp_Web_API.Features.TemplateExercises.Dtos;
 
 namespace C_Sharp_Web_API.Features.TemplateExercises;
 

@@ -1,9 +1,8 @@
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
-using C_Sharp_Web_API.Features.SetEntries.Domain;
 using Microsoft.EntityFrameworkCore;
 
-namespace C_Sharp_Web_API.Features.Exercises.Domain;
+namespace C_Sharp_Web_API.Features.TemplateExercises;
 
 public enum Unit { Kg, Min, Sec, Wdh }
 

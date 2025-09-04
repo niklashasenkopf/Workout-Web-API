@@ -1,9 +1,8 @@
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
-using C_Sharp_Web_API.Features.Exercises.Domain;
-using C_Sharp_Web_API.FeaturesNew.WorkoutExercises.Domain;
+using C_Sharp_Web_API.Features.WorkoutExercises;
 
-namespace C_Sharp_Web_API.Features.SetEntries.Domain;
+namespace C_Sharp_Web_API.Features.SetEntries;
 
 public class SetEntry
 {
@@ -20,6 +19,6 @@ public class SetEntry
     [Required]
     public int Reps { get; init; }
 
-    public int WorkoutExerciseId { get; init; }
+    public int WorkoutExerciseId { get; set; }
     public WorkoutExercise WorkoutExercise { get; init; } = null!;
 }

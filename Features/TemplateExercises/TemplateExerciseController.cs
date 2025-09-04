@@ -1,14 +1,12 @@
 using System.Text.Json;
 using AutoMapper;
-using C_Sharp_Web_API.Features.Exercises.Domain;
-using C_Sharp_Web_API.Features.Exercises.dtos;
-using C_Sharp_Web_API.Features.Exercises.Dtos;
-using C_Sharp_Web_API.Features.Exercises.Persistence;
+using C_Sharp_Web_API.Features.TemplateExercises.Dtos;
+using C_Sharp_Web_API.Features.TemplateExercises.Persistence;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.JsonPatch;
 using Microsoft.AspNetCore.Mvc;
 
-namespace C_Sharp_Web_API.Features.Exercises.Controllers;
+namespace C_Sharp_Web_API.Features.TemplateExercises;
 
 [ApiController]
 [Authorize]

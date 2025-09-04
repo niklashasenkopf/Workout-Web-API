@@ -91,7 +91,7 @@ public class AuthenticationController(
         claims.AddRange(roles.Select(role => new Claim(ClaimTypes.Role, role)));
 
         var now = DateTime.UtcNow;
-        var expiresAt = now.AddHours(2);
+        var expiresAt = now.AddHours(1);
 
         var jwt = new JwtSecurityToken(
             issuer: issuer,

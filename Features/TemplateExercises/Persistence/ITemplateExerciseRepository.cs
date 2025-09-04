@@ -1,7 +1,7 @@
-using C_Sharp_Web_API.Features.Exercises.Domain;
+using C_Sharp_Web_API.Features.TemplateExercises;
 using C_Sharp_Web_API.Shared;
 
-namespace C_Sharp_Web_API.Features.Exercises.Persistence;
+namespace C_Sharp_Web_API.Features.TemplateExercises.Persistence;
 
 public interface ITemplateExerciseRepository
 {

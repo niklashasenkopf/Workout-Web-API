@@ -1,7 +1,9 @@
+using System.Security.Claims;
 using System.Text.Json;
 using AutoMapper;
 using C_Sharp_Web_API.Features.Workouts.Dtos;
 using C_Sharp_Web_API.Features.Workouts.Persistence;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.JsonPatch;
 using Microsoft.AspNetCore.Mvc;
 
@@ -9,6 +11,7 @@ namespace C_Sharp_Web_API.Features.Workouts;
 
 
 [ApiController]
+[Authorize]
 [Route("workout-api/workouts")]
 public class WorkoutController(
     IWorkoutRepository workoutRepository,
@@ -30,7 +33,7 @@ public class WorkoutController(
         )
     {
         var (workoutEntities, paginationMetadata) = 
-            await _workoutRepository.GetAllAsync(name, searchQuery, pageNumber, pageSize);
+            await _workoutRepository.GetAllAsync(GetCurrentUserId(), name, searchQuery, pageNumber, pageSize);
 
         var mappedWorkoutEntities = _mapper.Map<IEnumerable<WorkoutWithoutExercisesDto>>(workoutEntities);
 
@@ -42,7 +45,7 @@ public class WorkoutController(
     [HttpGet("{workoutId:int}", Name = "GetWorkout")]
     public async Task<IActionResult> Get(int workoutId)
     {
-        var workoutEntity = await _workoutRepository.GetAsync(workoutId);
+        var workoutEntity = await _workoutRepository.GetAsync(GetCurrentUserId(), workoutId);
 
         if (workoutEntity is null) return NotFound();
         
@@ -54,6 +57,8 @@ public class WorkoutController(
     public async Task<ActionResult<WorkoutDto>> Create(WorkoutCreateRequestDto createRequest)
     {
         var workout = _mapper.Map<Workout>(createRequest);
+
+        workout.ApiUserId = GetCurrentUserId();
 
         await _workoutRepository.CreateAsync(workout);
 
@@ -71,7 +76,7 @@ public class WorkoutController(
     [HttpPut("{workoutId:int}")]
     public async Task<ActionResult> Update(int workoutId, WorkoutUpdateRequestDto updateRequest)
     {
-        var workout = await _workoutRepository.GetAsync(workoutId);
+        var workout = await _workoutRepository.GetAsync(GetCurrentUserId(), workoutId);
 
         if (workout is null) return NotFound();
 
@@ -87,7 +92,7 @@ public class WorkoutController(
         int workoutId,
         JsonPatchDocument<WorkoutUpdateRequestDto> patchDocument)
     {
-        var workout = await _workoutRepository.GetAsync(workoutId);
+        var workout = await _workoutRepository.GetAsync(GetCurrentUserId(), workoutId);
 
         if (workout is null) return NotFound();
 
@@ -110,7 +115,7 @@ public class WorkoutController(
     [HttpDelete("{workoutId:int}")]
     public async Task<ActionResult> Delete(int workoutId)
     {
-        var workoutToDelete = await _workoutRepository.GetAsync(workoutId);
+        var workoutToDelete = await _workoutRepository.GetAsync(GetCurrentUserId(), workoutId);
 
         if (workoutToDelete is null) return NoContent();
         
@@ -119,5 +124,10 @@ public class WorkoutController(
         await _workoutRepository.SaveChangesAsync();
 
         return NoContent();
+    }
+    
+    public Guid GetCurrentUserId()
+    {
+        return Guid.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
     }
 }

@@ -1,6 +1,6 @@
 using C_Sharp_Web_API.Features.SetEntries.Dtos;
 
-namespace C_Sharp_Web_API.Features.Exercises.dtos;
+namespace C_Sharp_Web_API.Features.TemplateExercises.Dtos;
 
 public class TemplateExerciseDto 
 {
