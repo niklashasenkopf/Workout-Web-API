@@ -8,6 +8,9 @@ using JwtRegisteredClaimNames = Microsoft.IdentityModel.JsonWebTokens.JwtRegiste
 
 namespace C_Sharp_Web_API.Authentication;
 
+/// <summary>
+/// Handles user authentication operations for the API, including login and token generation.
+/// </summary>
 [Route("workout-api/authentication")]
 [ApiController]
 public class AuthenticationController(
@@ -24,7 +27,11 @@ public class AuthenticationController(
 
     private readonly IConfiguration _configuration =
         configuration ?? throw new ArgumentNullException(nameof(configuration));
-    
+
+    /// <summary>
+    /// Represents a request model for user login, containing the user's identifier (such as username or email)
+    /// and password used for authentication.
+    /// </summary>
     public class LoginRequest
     {
         public string? Identifier { get; set; }
@@ -36,7 +43,17 @@ public class AuthenticationController(
         public string TokenString { get; set; } = tokenString;
         public DateTime ExpiresAtUtc { get; set; } = expiresAt;
     }
-    
+
+    /// <summary>
+    /// Authenticates a user with provided login credentials and generates a JWT token on successful authentication.
+    /// </summary>
+    /// <param name="loginRequest">
+    /// The login request containing the user's identifier (e.g., username or email) and password.
+    /// </param>
+    /// <returns>
+    /// Returns an ActionResult containing a generated JWT token and its expiration time on successful authentication,
+    /// or an error response for invalid credentials or missing parameters.
+    /// </returns>
     [HttpPost("login")]
     public async Task<ActionResult<string>> Authenticate(
         [FromBody] LoginRequest loginRequest)

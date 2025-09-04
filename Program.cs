@@ -1,4 +1,6 @@
+using System.Reflection;
 using System.Text;
+using Asp.Versioning;
 using C_Sharp_Web_API.Authentication;
 using C_Sharp_Web_API.DbContexts;
 using C_Sharp_Web_API.Features.TemplateExercises.Persistence;
@@ -6,6 +8,7 @@ using C_Sharp_Web_API.Features.Workouts.Persistence;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
+using Microsoft.OpenApi.Models;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -21,6 +24,35 @@ builder.Services.AddControllers(options =>
 }).AddNewtonsoftJson().AddXmlDataContractSerializerFormatters();
 
 builder.Services.AddOpenApi();
+builder.Services.AddEndpointsApiExplorer();
+builder.Services.AddSwaggerGen(setupAction =>
+{
+    var xmlCommentsFile = $"{Assembly.GetExecutingAssembly().GetName().Name}.xml";
+    var xmlCommentsFullPath = Path.Combine(AppContext.BaseDirectory, xmlCommentsFile);
+    
+    setupAction.IncludeXmlComments(xmlCommentsFullPath);
+    
+    setupAction.AddSecurityDefinition("WorkoutAPIBearerAuth", new OpenApiSecurityScheme()
+    {
+        Type = SecuritySchemeType.Http,
+        Scheme = "Bearer",
+        Description = "Input a valid token to access this API"
+    });
+    
+    setupAction.AddSecurityRequirement(new OpenApiSecurityRequirement()
+    {
+        {
+            new OpenApiSecurityScheme()
+            {
+                Reference = new OpenApiReference()
+                {
+                    Type = ReferenceType.SecurityScheme,
+                    Id = "WorkoutAPIBearerAuth" }
+            },
+            new List<string>()
+        }
+    });
+});
 builder.Services.AddProblemDetails();
 builder.Services.AddDbContext<AppDatabaseContext>(dbContextOptions => 
     dbContextOptions.UseNpgsql(builder.Configuration["ConnectionStrings:WorkoutDb"]));
@@ -56,6 +88,14 @@ builder.Services.AddAuthentication(options =>
     };
 });
 
+builder.Services.AddApiVersioning(setupAction =>
+{
+    setupAction.ReportApiVersions = true;
+    setupAction.AssumeDefaultVersionWhenUnspecified = true;
+    setupAction.DefaultApiVersion = new ApiVersion(0, 1);
+
+}).AddMvc();
+
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
@@ -68,6 +108,8 @@ if (!app.Environment.IsDevelopment())
 if (app.Environment.IsDevelopment())
 {
     await AppSeeder.SeedAsync(app.Services);
+    app.UseSwagger();
+    app.UseSwaggerUI();
     app.MapOpenApi();
 }
 
